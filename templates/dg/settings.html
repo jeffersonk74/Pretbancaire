@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% block title %}Paramètres Système — DG{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+  <a href="{{ url_for('dg_dashboard') }}" class="btn btn-outline-secondary me-3">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+  <div>
+    <h2 class="fw-bold mb-0"><i class="bi bi-gear text-primary"></i> Paramètres Système</h2>
+    <p class="text-muted mb-0">Configurez les taux d'intérêt et les limites de montant</p>
+  </div>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-md-7">
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-body p-5">
+        <form method="POST">
+          <div class="mb-4">
+            <label class="form-label fw-bold">
+              <i class="bi bi-percent text-primary"></i> Taux d'intérêt annuel (%)
+            </label>
+            <input type="number" name="interest_rate" class="form-control form-control-lg"
+                   step="0.01" min="0" max="100"
+                   value="{{ settings.interest_rate }}" required>
+            <div class="form-text">Taux appliqué lors du calcul des mensualités (formule d'annuité constante).</div>
+          </div>
+
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label fw-bold">
+                <i class="bi bi-arrow-down-circle text-success"></i> Montant minimum (FCFA)
+              </label>
+              <input type="number" name="min_amount" class="form-control" step="1000" min="0"
+                     value="{{ settings.min_amount|int }}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">
+                <i class="bi bi-arrow-up-circle text-warning"></i> Montant maximum (FCFA)
+              </label>
+              <input type="number" name="max_amount" class="form-control" step="1000" min="0"
+                     value="{{ settings.max_amount|int }}" required>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-bold">
+              <i class="bi bi-exclamation-triangle text-danger"></i> Taux de pénalité pour retard (%)
+            </label>
+            <input type="number" name="late_penalty_rate" class="form-control"
+                   step="0.01" min="0" max="100"
+                   value="{{ settings.late_penalty_rate }}" required>
+            <div class="form-text">Pourcentage appliqué sur chaque mensualité en retard.</div>
+          </div>
+
+          {% if settings.updated_at %}
+          <div class="alert alert-light border mb-4">
+            <small class="text-muted">
+              <i class="bi bi-clock-history"></i>
+              Dernière modification : {{ settings.updated_at.strftime('%d/%m/%Y à %H:%M') }} UTC
+            </small>
+          </div>
+          {% endif %}
+
+          <div class="d-grid">
+            <button type="submit" class="btn btn-primary btn-lg fw-bold">
+              <i class="bi bi-save"></i> Enregistrer les paramètres
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Test simulation box -->
+    <div class="card border-0 shadow-sm rounded-4 mt-4 border border-warning">
+      <div class="card-header bg-warning bg-opacity-10 border-0 pt-3 px-4">
+        <h6 class="fw-bold mb-0 text-warning"><i class="bi bi-flask"></i> Zone de test — Simulation du temps</h6>
+      </div>
+      <div class="card-body p-4">
+        <p class="text-muted small mb-3">
+          Pour tester la détection des retards sans attendre, modifiez directement
+          la date d'échéance d'une mensualité via la base de données (colonne <code>due_date</code>
+          de la table <code>installment</code>) pour mettre une date passée.
+          Ensuite cliquez sur "Vérifier les retards" dans le tableau de bord gestionnaire.
+        </p>
+        <div class="bg-light p-3 rounded border font-monospace small">
+          <span class="text-muted"># Exemple de requête SQLite :</span><br>
+          UPDATE installment SET due_date = '2026-01-01'<br>
+          WHERE loan_id = 1 AND status = 'non_paye' LIMIT 1;
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}PrêtBancaire{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+{% if current_user.is_authenticated %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-bold" href="{{ url_for('dashboard') }}">
+      <i class="bi bi-bank2"></i> PrêtBancaire
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav me-auto">
+        {% if current_user.role == 'client' %}
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('client_dashboard') }}"><i class="bi bi-speedometer2"></i> Tableau de bord</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('client_loan_new') }}"><i class="bi bi-plus-circle"></i> Nouvelle demande</a>
+          </li>
+        {% elif current_user.role == 'gestionnaire' %}
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('gestionnaire_dashboard') }}"><i class="bi bi-speedometer2"></i> Tableau de bord</a>
+          </li>
+        {% elif current_user.role == 'dg' %}
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('dg_dashboard') }}"><i class="bi bi-speedometer2"></i> Tableau de bord</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('dg_settings') }}"><i class="bi bi-gear"></i> Paramètres</a>
+          </li>
+        {% endif %}
+      </ul>
+      <ul class="navbar-nav ms-auto align-items-center">
+        <li class="nav-item me-2">
+          <a class="nav-link position-relative" href="{{ url_for('notifications') }}">
+            <i class="bi bi-bell fs-5"></i>
+            {% set cnt = unread_count() %}
+            {% if cnt > 0 %}
+              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">{{ cnt }}</span>
+            {% endif %}
+          </a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+            <i class="bi bi-person-circle"></i> {{ current_user.name }}
+            <span class="badge bg-warning text-dark ms-1">{{ current_user.role|upper }}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i> Déconnexion</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+{% endif %}
+
+<div class="container py-4">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+</div>
+
+<footer class="text-center text-muted py-3 mt-4 border-top">
+  <small>&copy; 2026 PrêtBancaire &mdash; Système de gestion des prêts</small>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% block title %}Tableau de bord DG — PrêtBancaire{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="fw-bold"><i class="bi bi-person-workspace text-primary"></i> Espace Directeur Général</h2>
+    <p class="text-muted mb-0">Approuvez ou rejetez les dossiers validés par le gestionnaire</p>
+  </div>
+  <a href="{{ url_for('dg_settings') }}" class="btn btn-outline-primary">
+    <i class="bi bi-gear"></i> Paramètres système
+  </a>
+</div>
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm rounded-4 border-start border-info border-4">
+      <div class="card-body p-3">
+        <p class="text-muted mb-1 small">En attente de décision</p>
+        <h3 class="fw-bold mb-0">{{ pending|length }}</h3>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm rounded-4 border-start border-success border-4">
+      <div class="card-body p-3">
+        <p class="text-muted mb-1 small">Approuvés (en attente décaissement)</p>
+        <h3 class="fw-bold mb-0">{{ approved|length }}</h3>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm rounded-4 border-start border-primary border-4">
+      <div class="card-body p-3">
+        <p class="text-muted mb-1 small">Total dossiers traités</p>
+        <h3 class="fw-bold mb-0">{{ pending|length + approved|length }}</h3>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Pending -->
+<div class="card border-0 shadow-sm rounded-4 mb-4">
+  <div class="card-header bg-info bg-opacity-10 border-0 pt-3 px-4">
+    <h6 class="fw-bold mb-0 text-info"><i class="bi bi-hourglass-split"></i> Dossiers à approuver ({{ pending|length }})</h6>
+  </div>
+  <div class="card-body">
+    {% if pending %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead class="table-light">
+          <tr><th>#</th><th>Client</th><th>Montant</th><th>Durée</th><th>Mensualité</th><th>Date</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+          {% for loan in pending %}
+          <tr>
+            <td><strong>{{ loan.id }}</strong></td>
+            <td>{{ loan.client.name }}</td>
+            <td class="fw-semibold">{{ '{:,.0f}'.format(loan.amount) }} FCFA</td>
+            <td>{{ loan.duration_months }} mois</td>
+            <td class="text-primary fw-semibold">{{ '{:,.0f}'.format(loan.monthly_payment) }} FCFA</td>
+            <td class="text-muted small">{{ loan.created_at.strftime('%d/%m/%Y') }}</td>
+            <td>
+              <a href="{{ url_for('dg_loan_detail', loan_id=loan.id) }}" class="btn btn-sm btn-info text-white">
+                <i class="bi bi-folder2-open"></i> Examiner
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="text-muted py-2 mb-0"><i class="bi bi-check2-all"></i> Aucun dossier en attente.</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Approved -->
+<div class="card border-0 shadow-sm rounded-4">
+  <div class="card-header bg-success bg-opacity-10 border-0 pt-3 px-4">
+    <h6 class="fw-bold mb-0 text-success"><i class="bi bi-patch-check"></i> Dossiers approuvés ({{ approved|length }})</h6>
+  </div>
+  <div class="card-body">
+    {% if approved %}
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead class="table-light">
+          <tr><th>#</th><th>Client</th><th>Montant</th><th>Signature</th></tr>
+        </thead>
+        <tbody>
+          {% for loan in approved %}
+          <tr>
+            <td>{{ loan.id }}</td>
+            <td>{{ loan.client.name }}</td>
+            <td>{{ '{:,.0f}'.format(loan.amount) }} FCFA</td>
+            <td><small class="text-success"><i class="bi bi-patch-check"></i> {{ loan.dg_signature }}</small></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="text-muted py-2 mb-0">Aucun dossier approuvé récemment.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

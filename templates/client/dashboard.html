@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% block title %}Tableau de bord Client — PrêtBancaire{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="fw-bold"><i class="bi bi-speedometer2 text-primary"></i> Mon Espace</h2>
+    <p class="text-muted mb-0">Bonjour, <strong>{{ current_user.name }}</strong></p>
+  </div>
+  <a href="{{ url_for('client_loan_new') }}" class="btn btn-primary">
+    <i class="bi bi-plus-circle"></i> Nouvelle demande
+  </a>
+</div>
+
+<!-- Balance card -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm rounded-4 bg-primary text-white">
+      <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <p class="mb-1 opacity-75">Solde disponible</p>
+            <h3 class="fw-bold mb-0">{{ '{:,.0f}'.format(current_user.balance) }} FCFA</h3>
+          </div>
+          <i class="bi bi-wallet2" style="font-size:2.5rem; opacity:0.5;"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <p class="text-muted mb-1">Demandes totales</p>
+            <h3 class="fw-bold mb-0">{{ loans|length }}</h3>
+          </div>
+          <i class="bi bi-file-text text-secondary" style="font-size:2.5rem;"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <p class="text-muted mb-1">Prêts actifs</p>
+            <h3 class="fw-bold mb-0">{{ active_loans|length }}</h3>
+          </div>
+          <i class="bi bi-check2-circle text-success" style="font-size:2.5rem;"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loans list -->
+<div class="card border-0 shadow-sm rounded-4">
+  <div class="card-header bg-white border-0 pt-4 px-4">
+    <h5 class="fw-bold mb-0"><i class="bi bi-list-ul"></i> Mes demandes de prêt</h5>
+  </div>
+  <div class="card-body">
+    {% if loans %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>#</th>
+            <th>Type</th>
+            <th>Montant</th>
+            <th>Durée</th>
+            <th>Statut</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for loan in loans %}
+          <tr>
+            <td><strong>{{ loan.id }}</strong></td>
+            <td><span class="badge bg-info text-dark">{{ loan.loan_type|upper }}</span></td>
+            <td class="fw-semibold">{{ '{:,.0f}'.format(loan.amount) }} FCFA</td>
+            <td>{{ loan.duration_months }} mois</td>
+            <td>
+              {% set status_colors = {
+                'en_attente_gestionnaire': 'warning',
+                'en_attente_dg': 'info',
+                'approuve': 'primary',
+                'rejete': 'danger',
+                'actif': 'success',
+                'cloture': 'secondary'
+              } %}
+              <span class="badge bg-{{ status_colors.get(loan.status, 'secondary') }}">
+                {{ loan.status_label }}
+              </span>
+              {% if loan.has_overdue %}
+                <span class="badge bg-danger ms-1"><i class="bi bi-exclamation-triangle"></i> Retard</span>
+              {% endif %}
+            </td>
+            <td class="text-muted small">{{ loan.created_at.strftime('%d/%m/%Y') }}</td>
+            <td>
+              <a href="{{ url_for('client_loan_detail', loan_id=loan.id) }}" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-eye"></i> Voir
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+      <i class="bi bi-inbox text-muted" style="font-size:3rem;"></i>
+      <p class="text-muted mt-3">Aucune demande de prêt.</p>
+      <a href="{{ url_for('client_loan_new') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Faire une demande
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

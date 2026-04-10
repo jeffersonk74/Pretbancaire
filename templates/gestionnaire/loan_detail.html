@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+{% block title %}Dossier #{{ loan.id }} — Gestionnaire{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+  <a href="{{ url_for('gestionnaire_dashboard') }}" class="btn btn-outline-secondary me-3">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+  <div>
+    <h2 class="fw-bold mb-0">Dossier #{{ loan.id }} — Prêt {{ loan.loan_type|upper }}</h2>
+    <p class="text-muted mb-0">Client : <strong>{{ loan.client.name }}</strong> &mdash; {{ loan.client.email }}</p>
+  </div>
+</div>
+
+{% set status_colors = {
+  'en_attente_gestionnaire': 'warning',
+  'en_attente_dg': 'info',
+  'approuve': 'primary',
+  'rejete': 'danger',
+  'actif': 'success',
+  'cloture': 'secondary'
+} %}
+<div class="alert alert-{{ status_colors.get(loan.status, 'secondary') }} d-flex align-items-center mb-4">
+  <i class="bi bi-info-circle-fill me-2 fs-5"></i>
+  <div><strong>Statut actuel :</strong> {{ loan.status_label }}</div>
+</div>
+
+{% if loan.dg_note %}
+<div class="alert alert-danger"><i class="bi bi-chat-left-text"></i> <strong>Note DG :</strong> {{ loan.dg_note }}</div>
+{% endif %}
+
+<div class="row g-4 mb-4">
+  <!-- Loan details -->
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm rounded-4 h-100">
+      <div class="card-header bg-white border-0 pt-4 px-4">
+        <h6 class="fw-bold mb-0"><i class="bi bi-file-earmark-text"></i> Informations du prêt</h6>
+      </div>
+      <div class="card-body px-4">
+        <table class="table table-borderless">
+          <tr><th class="text-muted fw-normal w-50">Client</th><td class="fw-bold">{{ loan.client.name }}</td></tr>
+          <tr><th class="text-muted fw-normal">Email</th><td>{{ loan.client.email }}</td></tr>
+          <tr><th class="text-muted fw-normal">Secteur</th><td>{{ 'Public' if loan.sector == 'public' else 'Privé' }}</td></tr>
+          <tr><th class="text-muted fw-normal">Montant demandé</th><td class="fw-bold">{{ '{:,.0f}'.format(loan.amount) }} FCFA</td></tr>
+          <tr><th class="text-muted fw-normal">Durée</th><td>{{ loan.duration_months }} mois</td></tr>
+          <tr><th class="text-muted fw-normal">Taux</th><td>{{ loan.interest_rate }}% / an</td></tr>
+          <tr><th class="text-muted fw-normal">Mensualité</th><td class="fw-bold text-primary">{{ '{:,.0f}'.format(loan.monthly_payment) }} FCFA</td></tr>
+          <tr><th class="text-muted fw-normal">Total à rembourser</th><td>{{ '{:,.0f}'.format(loan.total_repayment) }} FCFA</td></tr>
+          <tr><th class="text-muted fw-normal">Soumis le</th><td>{{ loan.created_at.strftime('%d/%m/%Y %H:%M') }}</td></tr>
+        </table>
+        {% if loan.reason %}
+        <p class="text-muted mb-1 small fw-semibold">Motif :</p>
+        <p>{{ loan.reason }}</p>
+        {% endif %}
+        {% if loan.dg_signature %}
+        <div class="alert alert-success py-2">
+          <small><i class="bi bi-patch-check"></i> {{ loan.dg_signature }}</small>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Documents -->
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm rounded-4 h-100">
+      <div class="card-header bg-white border-0 pt-4 px-4">
+        <h6 class="fw-bold mb-0"><i class="bi bi-paperclip"></i> Pièces justificatives</h6>
+      </div>
+      <div class="card-body px-4">
+        {% set doc_labels = {
+          'photo': 'Photo d\'identité',
+          'identite': 'Pièce d\'identité / Passeport',
+          'contrat_travail': 'Contrat de travail',
+          'arrete': 'Arrêté d\'intégration'
+        } %}
+        {% if loan.documents %}
+        <ul class="list-group list-group-flush">
+          {% for doc in loan.documents %}
+          <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+            <div>
+              <i class="bi bi-file-earmark me-2 text-primary"></i>
+              <strong>{{ doc_labels.get(doc.doc_type, doc.doc_type) }}</strong>
+              <br><small class="text-muted ms-4">{{ doc.original_name }}</small>
+            </div>
+            <a href="{{ url_for('uploaded_file', filename=doc.filename) }}"
+               class="btn btn-sm btn-outline-secondary" target="_blank">
+              <i class="bi bi-download"></i> Voir
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-muted">Aucune pièce jointe.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Action buttons -->
+{% if loan.status == 'en_attente_gestionnaire' %}
+<div class="row g-3">
+  <!-- Approve to DG -->
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm rounded-4 border-start border-success border-4">
+      <div class="card-body p-4">
+        <h6 class="fw-bold text-success mb-3"><i class="bi bi-check-circle"></i> Transmettre au DG</h6>
+        <p class="text-muted small">Le dossier est conforme. Transmettre au Directeur Général pour approbation finale.</p>
+        <form method="POST" action="{{ url_for('gestionnaire_approve', loan_id=loan.id) }}"
+              onsubmit="return confirm('Transmettre ce dossier au DG ?')">
+          <button type="submit" class="btn btn-success w-100">
+            <i class="bi bi-send"></i> Transmettre au DG
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <!-- Reject -->
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm rounded-4 border-start border-danger border-4">
+      <div class="card-body p-4">
+        <h6 class="fw-bold text-danger mb-3"><i class="bi bi-x-circle"></i> Rejeter le dossier</h6>
+        <form method="POST" action="{{ url_for('gestionnaire_reject', loan_id=loan.id) }}">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Motif du refus <span class="text-danger">*</span></label>
+            <textarea name="note" class="form-control form-control-sm" rows="3"
+                      placeholder="Expliquez le motif du rejet..." required></textarea>
+          </div>
+          <button type="submit" class="btn btn-danger w-100"
+                  onclick="return confirm('Confirmer le rejet de ce dossier ?')">
+            <i class="bi bi-x-circle"></i> Rejeter
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% elif loan.status == 'approuve' %}
+<div class="card border-0 shadow-sm rounded-4 border-start border-primary border-4">
+  <div class="card-body p-4">
+    <h6 class="fw-bold text-primary mb-2"><i class="bi bi-cash-coin"></i> Décaissement du prêt</h6>
+    <p class="text-muted">Le DG a approuvé ce dossier. Vous pouvez procéder au décaissement.</p>
+    <form method="POST" action="{{ url_for('gestionnaire_disburse', loan_id=loan.id) }}"
+          onsubmit="return confirm('Confirmer le décaissement de {{ '{:,.0f}'.format(loan.amount) }} FCFA au client {{ loan.client.name }} ?')">
+      <button type="submit" class="btn btn-primary btn-lg">
+        <i class="bi bi-cash"></i> Décaisser — {{ '{:,.0f}'.format(loan.amount) }} FCFA
+      </button>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+<!-- Installments (active loans) -->
+{% if loan.installments %}
+<div class="card border-0 shadow-sm rounded-4 mt-4">
+  <div class="card-header bg-white border-0 pt-4 px-4">
+    <h6 class="fw-bold mb-0"><i class="bi bi-calendar-check"></i> Suivi des remboursements</h6>
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead class="table-light">
+          <tr><th>#</th><th>Échéance</th><th>Montant</th><th>Pénalité</th><th>Statut</th><th>Payé le</th></tr>
+        </thead>
+        <tbody>
+          {% for inst in loan.installments %}
+          <tr class="{% if inst.status == 'en_retard' %}table-danger{% elif inst.status == 'paye' %}table-success{% endif %}">
+            <td>{{ inst.installment_number }}</td>
+            <td>{{ inst.due_date.strftime('%d/%m/%Y') }}</td>
+            <td>{{ '{:,.0f}'.format(inst.amount) }} FCFA</td>
+            <td>{{ ('+' + '{:,.0f}'.format(inst.penalty) + ' FCFA') if inst.penalty > 0 else '—' }}</td>
+            <td>
+              {% if inst.status == 'paye' %}
+                <span class="badge bg-success">Payé</span>
+              {% elif inst.status == 'en_retard' %}
+                <span class="badge bg-danger">En retard</span>
+              {% else %}
+                <span class="badge bg-warning text-dark">Non payé</span>
+              {% endif %}
+            </td>
+            <td class="text-muted small">{{ inst.paid_at.strftime('%d/%m/%Y') if inst.paid_at else '—' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

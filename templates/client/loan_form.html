@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+{% block title %}Demande de Prêt Scolaire — PrêtBancaire{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-header bg-primary text-white rounded-top-4 p-4">
+        <h4 class="mb-0 fw-bold"><i class="bi bi-mortarboard"></i> Demande de Prêt Scolaire</h4>
+        <p class="mb-0 opacity-75 mt-1">Remplissez le formulaire ci-dessous pour soumettre votre demande.</p>
+      </div>
+      <div class="card-body p-4">
+        <form method="POST" enctype="multipart/form-data" id="loanForm">
+
+          <!-- Loan type -->
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Type de prêt</label>
+            <input type="text" class="form-control bg-light" value="Prêt Scolaire" readonly>
+          </div>
+
+          <!-- Sector -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Secteur d'activité <span class="text-danger">*</span></label>
+            <select name="sector" id="sectorSelect" class="form-select" required>
+              <option value="prive" {% if sector == 'prive' %}selected{% endif %}>Secteur Privé</option>
+              <option value="public" {% if sector == 'public' %}selected{% endif %}>Secteur Public</option>
+            </select>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">
+                Montant demandé (FCFA) <span class="text-danger">*</span>
+              </label>
+              <input type="number" name="amount" id="amountInput" class="form-control"
+                     min="{{ settings.min_amount }}" max="{{ settings.max_amount }}"
+                     step="1000" placeholder="{{ settings.min_amount|int }}"
+                     required oninput="updateSimulation()">
+              <div class="form-text text-muted">
+                Entre {{ '{:,.0f}'.format(settings.min_amount) }} et {{ '{:,.0f}'.format(settings.max_amount) }} FCFA
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">
+                Durée (mois) <span class="text-danger">*</span>
+              </label>
+              <input type="number" name="duration" id="durationInput" class="form-control"
+                     min="1" max="120" placeholder="12"
+                     required oninput="updateSimulation()">
+              <div class="form-text text-muted">Entre 1 et 120 mois</div>
+            </div>
+          </div>
+
+          <!-- Simulation box -->
+          <div id="simulationBox" class="alert alert-info d-none mb-4">
+            <h6 class="fw-bold mb-2"><i class="bi bi-calculator"></i> Simulation de remboursement</h6>
+            <div class="row">
+              <div class="col-6">
+                <small class="text-muted">Taux d'intérêt annuel</small>
+                <p class="fw-bold mb-0">{{ settings.interest_rate }}%</p>
+              </div>
+              <div class="col-6">
+                <small class="text-muted">Mensualité estimée</small>
+                <p class="fw-bold mb-0 text-primary" id="monthlyPayment">—</p>
+              </div>
+              <div class="col-6 mt-2">
+                <small class="text-muted">Total à rembourser</small>
+                <p class="fw-bold mb-0" id="totalRepayment">—</p>
+              </div>
+              <div class="col-6 mt-2">
+                <small class="text-muted">Coût total du crédit</small>
+                <p class="fw-bold mb-0 text-danger" id="creditCost">—</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Motif -->
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Motif <span class="text-danger">*</span></label>
+            <textarea name="reason" class="form-control" rows="3"
+                      placeholder="Décrivez brièvement l'objet de votre demande..." required></textarea>
+          </div>
+
+          <hr class="my-4">
+          <h6 class="fw-bold mb-3"><i class="bi bi-paperclip"></i> Pièces justificatives obligatoires</h6>
+
+          <!-- Photo -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">
+              Photo d'identité <span class="text-danger">*</span>
+            </label>
+            <input type="file" name="photo" id="photoInput" class="form-control"
+                   accept=".jpg,.jpeg,.png,.gif" required>
+            <div class="form-text">Formats acceptés : JPG, PNG, GIF</div>
+          </div>
+
+          <!-- Identité -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">
+              Pièce d'identité / Passeport <span class="text-danger">*</span>
+            </label>
+            <input type="file" name="identite" id="identiteInput" class="form-control"
+                   accept=".jpg,.jpeg,.png,.gif,.pdf" required>
+            <div class="form-text">Formats acceptés : JPG, PNG, GIF, PDF</div>
+          </div>
+
+          <!-- Contrat (privé) -->
+          <div id="contratBlock" class="mb-3 {% if sector == 'public' %}d-none{% endif %}">
+            <label class="form-label fw-semibold">
+              Contrat de travail <span class="text-danger">*</span>
+              <span class="badge bg-secondary ms-1">Secteur Privé</span>
+            </label>
+            <input type="file" name="contrat_travail" id="contratInput" class="form-control"
+                   accept=".jpg,.jpeg,.png,.gif,.pdf">
+            <div class="form-text">Formats acceptés : JPG, PNG, GIF, PDF</div>
+          </div>
+
+          <!-- Arrêté (public) -->
+          <div id="arreteBlock" class="mb-3 {% if sector != 'public' %}d-none{% endif %}">
+            <label class="form-label fw-semibold">
+              Arrêté d'intégration <span class="text-danger">*</span>
+              <span class="badge bg-info text-dark ms-1">Secteur Public</span>
+            </label>
+            <input type="file" name="arrete" id="arreteInput" class="form-control"
+                   accept=".jpg,.jpeg,.png,.gif,.pdf">
+            <div class="form-text">Formats acceptés : JPG, PNG, GIF, PDF</div>
+          </div>
+
+          <div class="d-grid mt-4">
+            <button type="submit" id="submitBtn" class="btn btn-primary btn-lg py-3 fw-bold" disabled>
+              <i class="bi bi-send"></i> Demander maintenant
+            </button>
+          </div>
+          <p class="text-center text-muted small mt-2">
+            <i class="bi bi-info-circle"></i> Le bouton s'active lorsque tous les champs et fichiers sont remplis.
+          </p>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const interestRate = {{ settings.interest_rate }};
+
+// Show/hide document blocks based on sector
+document.getElementById('sectorSelect').addEventListener('change', function() {
+  const sector = this.value;
+  document.getElementById('contratBlock').classList.toggle('d-none', sector !== 'prive');
+  document.getElementById('arreteBlock').classList.toggle('d-none', sector !== 'public');
+  checkFormValidity();
+});
+
+function formatNumber(n) {
+  return Math.round(n).toLocaleString('fr-FR') + ' FCFA';
+}
+
+function calculateMonthly(principal, annualRate, months) {
+  if (annualRate === 0) return principal / months;
+  const r = annualRate / 100 / 12;
+  return principal * r * Math.pow(1+r, months) / (Math.pow(1+r, months) - 1);
+}
+
+function updateSimulation() {
+  const amount = parseFloat(document.getElementById('amountInput').value);
+  const months = parseInt(document.getElementById('durationInput').value);
+  const box = document.getElementById('simulationBox');
+  if (amount > 0 && months > 0) {
+    const monthly = calculateMonthly(amount, interestRate, months);
+    const total = monthly * months;
+    document.getElementById('monthlyPayment').textContent = formatNumber(monthly);
+    document.getElementById('totalRepayment').textContent = formatNumber(total);
+    document.getElementById('creditCost').textContent = formatNumber(total - amount);
+    box.classList.remove('d-none');
+  } else {
+    box.classList.add('d-none');
+  }
+  checkFormValidity();
+}
+
+function checkFormValidity() {
+  const amount = parseFloat(document.getElementById('amountInput').value);
+  const duration = parseInt(document.getElementById('durationInput').value);
+  const reason = document.querySelector('textarea[name=reason]').value.trim();
+  const photo = document.getElementById('photoInput').files.length > 0;
+  const identite = document.getElementById('identiteInput').files.length > 0;
+  const sector = document.getElementById('sectorSelect').value;
+  const contrat = sector === 'prive' ? document.getElementById('contratInput').files.length > 0 : true;
+  const arrete = sector === 'public' ? document.getElementById('arreteInput').files.length > 0 : true;
+  const minAmt = {{ settings.min_amount }};
+  const maxAmt = {{ settings.max_amount }};
+  const valid = amount >= minAmt && amount <= maxAmt &&
+                duration >= 1 && duration <= 120 &&
+                reason.length > 0 && photo && identite && contrat && arrete;
+  document.getElementById('submitBtn').disabled = !valid;
+}
+
+// Attach listeners
+['photoInput','identiteInput','contratInput','arreteInput'].forEach(id => {
+  document.getElementById(id).addEventListener('change', checkFormValidity);
+});
+document.querySelector('textarea[name=reason]').addEventListener('input', checkFormValidity);
+</script>
+{% endblock %}
