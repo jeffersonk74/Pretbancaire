@@ -1,0 +1,51 @@
+/* PrêtBancaire — custom styles */
+
+body {
+  background-color: #f8f9fa;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+.navbar {
+  box-shadow: 0 2px 4px rgba(0,0,0,.1);
+}
+
+.card {
+  border-radius: .75rem;
+}
+
+.card-header {
+  border-radius: .75rem .75rem 0 0 !important;
+}
+
+.fw-mono {
+  font-family: 'Courier New', monospace;
+  font-size: .9em;
+}
+
+.table th {
+  font-weight: 600;
+  font-size: .875rem;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+}
+
+.badge {
+  font-weight: 500;
+}
+
+dl.row dt {
+  font-weight: 600;
+  color: #6c757d;
+}
+
+dl.row dd {
+  margin-bottom: .5rem;
+}
+
+.display-6 {
+  font-size: 2rem;
+}
+
+footer {
+  margin-top: 4rem;
+}

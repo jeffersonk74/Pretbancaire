@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block title %}Prêt {{ pret.numero }} — PrêtBancaire{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+  <a href="{{ url_for('client_dashboard') }}" class="btn btn-outline-secondary btn-sm me-3">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+  <h2 class="mb-0">Détail du prêt <span class="text-primary">{{ pret.numero }}</span></h2>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card shadow-sm">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <span class="fw-semibold"><i class="bi bi-file-text me-2"></i>Informations du prêt</span>
+        <span class="badge bg-{{ pret.statut_badge }} fs-6">{{ pret.statut_libelle }}</span>
+      </div>
+      <div class="card-body">
+        <dl class="row">
+          <dt class="col-sm-4">Type</dt>
+          <dd class="col-sm-8">{{ pret.type_pret|capitalize }}</dd>
+          <dt class="col-sm-4">Objet</dt>
+          <dd class="col-sm-8">{{ pret.objet }}</dd>
+          <dt class="col-sm-4">Montant</dt>
+          <dd class="col-sm-8 fw-bold fs-5 text-primary">{{ "{:,.2f}".format(pret.montant) }} €</dd>
+          <dt class="col-sm-4">Durée</dt>
+          <dd class="col-sm-8">{{ pret.duree_mois }} mois</dd>
+          <dt class="col-sm-4">Taux d'intérêt</dt>
+          <dd class="col-sm-8">{{ pret.taux_interet }} %</dd>
+          <dt class="col-sm-4">Mensualité estimée</dt>
+          <dd class="col-sm-8">{{ "{:,.2f}".format(pret.mensualite) }} €</dd>
+          <dt class="col-sm-4">Coût total</dt>
+          <dd class="col-sm-8">{{ "{:,.2f}".format(pret.cout_total) }} €</dd>
+          {% if pret.description %}
+          <dt class="col-sm-4">Description</dt>
+          <dd class="col-sm-8">{{ pret.description }}</dd>
+          {% endif %}
+          <dt class="col-sm-4">Date de demande</dt>
+          <dd class="col-sm-8">{{ pret.date_demande.strftime('%d/%m/%Y à %H:%M') }}</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    {% if pret.commentaire_gestionnaire %}
+    <div class="card shadow-sm mb-3">
+      <div class="card-header bg-white fw-semibold"><i class="bi bi-chat-text me-2"></i>Avis gestionnaire</div>
+      <div class="card-body">{{ pret.commentaire_gestionnaire }}</div>
+    </div>
+    {% endif %}
+    {% if pret.commentaire_dg %}
+    <div class="card shadow-sm">
+      <div class="card-header bg-white fw-semibold"><i class="bi bi-chat-text me-2"></i>Décision DG</div>
+      <div class="card-body">{{ pret.commentaire_dg }}</div>
+    </div>
+    {% endif %}
+    {% if not pret.commentaire_gestionnaire and not pret.commentaire_dg %}
+    <div class="card shadow-sm">
+      <div class="card-body text-muted text-center py-4">
+        <i class="bi bi-hourglass-split display-4 d-block mb-2"></i>
+        Votre dossier est en cours de traitement.
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

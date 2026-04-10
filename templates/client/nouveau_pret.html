@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block title %}Nouvelle demande — PrêtBancaire{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="d-flex align-items-center mb-4">
+      <a href="{{ url_for('client_dashboard') }}" class="btn btn-outline-secondary btn-sm me-3">
+        <i class="bi bi-arrow-left"></i>
+      </a>
+      <h2 class="mb-0"><i class="bi bi-file-earmark-plus me-2 text-primary"></i>Nouvelle demande de prêt</h2>
+    </div>
+
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <form method="POST">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Type de prêt *</label>
+              <select name="type_pret" class="form-select" required>
+                <option value="">-- Sélectionnez --</option>
+                <option value="immobilier">Immobilier</option>
+                <option value="auto">Automobile</option>
+                <option value="consommation">Consommation</option>
+                <option value="professionnel">Professionnel</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Objet du prêt *</label>
+              <input type="text" name="objet" class="form-control" placeholder="Ex: Achat véhicule" required maxlength="200">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Montant demandé (€) *</label>
+              <div class="input-group">
+                <input type="number" name="montant" class="form-control" placeholder="10000" min="500" max="2000000" step="100" required>
+                <span class="input-group-text">€</span>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Durée (mois) *</label>
+              <div class="input-group">
+                <input type="number" name="duree_mois" class="form-control" id="duree" placeholder="24" min="6" max="360" required>
+                <span class="input-group-text">mois</span>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Taux d'intérêt (%) *</label>
+              <div class="input-group">
+                <input type="number" name="taux_interet" class="form-control" id="taux" value="5.0" min="0.1" max="30" step="0.1" required>
+                <span class="input-group-text">%</span>
+              </div>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Description / Justification</label>
+              <textarea name="description" class="form-control" rows="3" placeholder="Décrivez votre projet ou situation..."></textarea>
+            </div>
+
+            <!-- Simulateur -->
+            <div class="col-12">
+              <div class="alert alert-info" id="simulateur" style="display:none;">
+                <strong><i class="bi bi-calculator me-1"></i>Simulation :</strong>
+                Mensualité estimée : <strong id="sim-mensualite"></strong> €
+                &nbsp;|&nbsp; Coût total : <strong id="sim-total"></strong> €
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 mt-4">
+            <a href="{{ url_for('client_dashboard') }}" class="btn btn-outline-secondary">Annuler</a>
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-send me-1"></i>Soumettre la demande
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function calcMensualite() {
+  const montant = parseFloat(document.querySelector('[name=montant]').value);
+  const duree = parseInt(document.querySelector('[name=duree_mois]').value);
+  const taux = parseFloat(document.querySelector('[name=taux_interet]').value);
+  const sim = document.getElementById('simulateur');
+  if (montant > 0 && duree > 0 && taux > 0) {
+    const r = (taux / 100) / 12;
+    const m = montant * r * Math.pow(1+r, duree) / (Math.pow(1+r, duree) - 1);
+    document.getElementById('sim-mensualite').textContent = m.toFixed(2);
+    document.getElementById('sim-total').textContent = (m * duree).toFixed(2);
+    sim.style.display = 'block';
+  } else {
+    sim.style.display = 'none';
+  }
+}
+['montant','duree_mois','taux_interet'].forEach(n => {
+  document.querySelector('[name=' + n + ']').addEventListener('input', calcMensualite);
+});
+</script>
+{% endblock %}

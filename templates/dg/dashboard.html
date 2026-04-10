@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% block title %}DG — PrêtBancaire{% endblock %}
+
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-person-check me-2 text-primary"></i>Espace Directeur Général</h2>
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card border-primary border-2 shadow-sm text-center">
+      <div class="card-body">
+        <div class="display-6 fw-bold text-primary">{{ stats.a_valider }}</div>
+        <div class="small">À valider</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card border-warning border-2 shadow-sm text-center">
+      <div class="card-body">
+        <div class="display-6 fw-bold text-warning">{{ stats.en_cours }}</div>
+        <div class="small">En cours</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card border-success border-2 shadow-sm text-center">
+      <div class="card-body">
+        <div class="display-6 fw-bold text-success">{{ stats.approuves }}</div>
+        <div class="small">Approuvés</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card border-danger border-2 shadow-sm text-center">
+      <div class="card-body">
+        <div class="display-6 fw-bold text-danger">{{ stats.refuses }}</div>
+        <div class="small">Refusés</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- À valider -->
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-primary bg-opacity-10 fw-semibold">
+    <i class="bi bi-clipboard-check me-2 text-primary"></i>Dossiers en attente de validation DG
+    {% if a_valider %}<span class="badge bg-primary ms-2">{{ a_valider|length }}</span>{% endif %}
+  </div>
+  <div class="card-body p-0">
+    {% if a_valider %}
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Numéro</th><th>Client</th><th>Type</th><th>Objet</th>
+            <th class="text-end">Montant</th><th>Gestionnaire</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for pret in a_valider %}
+          <tr>
+            <td class="fw-mono">{{ pret.numero }}</td>
+            <td>{{ pret.client.nom_complet }}</td>
+            <td>{{ pret.type_pret|capitalize }}</td>
+            <td>{{ pret.objet }}</td>
+            <td class="text-end">{{ "{:,.2f}".format(pret.montant) }} €</td>
+            <td>{{ pret.gestionnaire.nom_complet if pret.gestionnaire else '—' }}</td>
+            <td>
+              <a href="{{ url_for('dg_pret_detail', pret_id=pret.id) }}" class="btn btn-sm btn-primary">
+                <i class="bi bi-pencil"></i> Décider
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-4 text-muted"><i class="bi bi-check-all me-1"></i>Aucun dossier à valider.</div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Décisions récentes -->
+{% if recents %}
+<div class="card shadow-sm">
+  <div class="card-header bg-white fw-semibold">
+    <i class="bi bi-clock-history me-2"></i>Mes décisions récentes
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Numéro</th><th>Client</th><th>Objet</th>
+            <th class="text-end">Montant</th><th class="text-center">Décision</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for pret in recents %}
+          <tr>
+            <td class="fw-mono">{{ pret.numero }}</td>
+            <td>{{ pret.client.nom_complet }}</td>
+            <td>{{ pret.objet }}</td>
+            <td class="text-end">{{ "{:,.2f}".format(pret.montant) }} €</td>
+            <td class="text-center">
+              <span class="badge bg-{{ pret.statut_badge }}">{{ pret.statut_libelle }}</span>
+            </td>
+            <td>
+              <a href="{{ url_for('dg_pret_detail', pret_id=pret.id) }}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-eye"></i>
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

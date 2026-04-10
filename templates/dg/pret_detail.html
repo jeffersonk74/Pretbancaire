@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block title %}Prêt {{ pret.numero }} — DG{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+  <a href="{{ url_for('dg_dashboard') }}" class="btn btn-outline-secondary btn-sm me-3">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+  <h2 class="mb-0">Dossier <span class="text-primary">{{ pret.numero }}</span></h2>
+  <span class="badge bg-{{ pret.statut_badge }} ms-3 fs-6">{{ pret.statut_libelle }}</span>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="card shadow-sm">
+      <div class="card-header bg-white fw-semibold"><i class="bi bi-file-text me-2"></i>Détails du prêt</div>
+      <div class="card-body">
+        <dl class="row">
+          <dt class="col-sm-5">Client</dt>
+          <dd class="col-sm-7">{{ pret.client.nom_complet }} <span class="text-muted">({{ pret.client.email }})</span></dd>
+          <dt class="col-sm-5">Gestionnaire</dt>
+          <dd class="col-sm-7">{{ pret.gestionnaire.nom_complet if pret.gestionnaire else '—' }}</dd>
+          <dt class="col-sm-5">Type</dt>
+          <dd class="col-sm-7">{{ pret.type_pret|capitalize }}</dd>
+          <dt class="col-sm-5">Objet</dt>
+          <dd class="col-sm-7">{{ pret.objet }}</dd>
+          <dt class="col-sm-5">Montant</dt>
+          <dd class="col-sm-7 fw-bold fs-5 text-primary">{{ "{:,.2f}".format(pret.montant) }} €</dd>
+          <dt class="col-sm-5">Durée</dt>
+          <dd class="col-sm-7">{{ pret.duree_mois }} mois</dd>
+          <dt class="col-sm-5">Taux</dt>
+          <dd class="col-sm-7">{{ pret.taux_interet }} %</dd>
+          <dt class="col-sm-5">Mensualité</dt>
+          <dd class="col-sm-7">{{ "{:,.2f}".format(pret.mensualite) }} €</dd>
+          <dt class="col-sm-5">Coût total</dt>
+          <dd class="col-sm-7">{{ "{:,.2f}".format(pret.cout_total) }} €</dd>
+          {% if pret.description %}
+          <dt class="col-sm-5">Description client</dt>
+          <dd class="col-sm-7">{{ pret.description }}</dd>
+          {% endif %}
+          <dt class="col-sm-5">Date de demande</dt>
+          <dd class="col-sm-7">{{ pret.date_demande.strftime('%d/%m/%Y à %H:%M') }}</dd>
+        </dl>
+      </div>
+    </div>
+
+    {% if pret.commentaire_gestionnaire %}
+    <div class="card shadow-sm mt-3">
+      <div class="card-header bg-white fw-semibold"><i class="bi bi-chat-text me-2"></i>Avis du gestionnaire</div>
+      <div class="card-body">{{ pret.commentaire_gestionnaire }}</div>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="col-lg-5">
+    {% if pret.statut == 'approuve_gestionnaire' %}
+    <div class="card shadow-sm border-primary">
+      <div class="card-header bg-primary bg-opacity-10 fw-semibold"><i class="bi bi-gavel me-2"></i>Décision finale</div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('dg_decision', pret_id=pret.id) }}">
+          <div class="mb-3">
+            <label class="form-label">Commentaire DG</label>
+            <textarea name="commentaire" class="form-control" rows="3" placeholder="Votre commentaire..."></textarea>
+          </div>
+          <div class="d-grid gap-2">
+            <button type="submit" name="decision" value="approuver" class="btn btn-success btn-lg">
+              <i class="bi bi-check-circle me-1"></i>Approuver définitivement
+            </button>
+            <button type="submit" name="decision" value="refuser" class="btn btn-danger btn-lg">
+              <i class="bi bi-x-circle me-1"></i>Refuser définitivement
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    {% elif pret.commentaire_dg %}
+    <div class="card shadow-sm">
+      <div class="card-header bg-white fw-semibold"><i class="bi bi-chat-text me-2"></i>Ma décision</div>
+      <div class="card-body">{{ pret.commentaire_dg }}</div>
+    </div>
+    {% else %}
+    <div class="card shadow-sm">
+      <div class="card-body text-muted text-center py-4">
+        <i class="bi bi-info-circle display-4 d-block mb-2"></i>
+        Ce dossier n'est pas encore soumis à validation DG.
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

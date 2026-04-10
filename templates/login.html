@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Connexion — PrêtBancaire{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-5">
+    <div class="card shadow-sm mt-5">
+      <div class="card-body p-4">
+        <div class="text-center mb-4">
+          <i class="bi bi-bank2 text-primary" style="font-size:3rem;"></i>
+          <h2 class="fw-bold mt-2">PrêtBancaire</h2>
+          <p class="text-muted">Connectez-vous à votre espace</p>
+        </div>
+        <form method="POST">
+          <div class="mb-3">
+            <label for="email" class="form-label">Adresse e-mail</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+              <input type="email" class="form-control" id="email" name="email" placeholder="vous@exemple.com" required autofocus>
+            </div>
+          </div>
+          <div class="mb-4">
+            <label for="password" class="form-label">Mot de passe</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-lock"></i></span>
+              <input type="password" class="form-control" id="password" name="password" placeholder="••••••••" required>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary w-100 btn-lg">
+            <i class="bi bi-box-arrow-in-right me-1"></i>Se connecter
+          </button>
+        </form>
+        <hr>
+        <div class="text-muted small">
+          <p class="mb-1 fw-semibold">Comptes de démonstration :</p>
+          <ul class="list-unstyled mb-0">
+            <li><i class="bi bi-person me-1"></i>client@demo.com — Client</li>
+            <li><i class="bi bi-person me-1"></i>client2@demo.com — Client</li>
+            <li><i class="bi bi-person-badge me-1"></i>gestionnaire@demo.com — Gestionnaire</li>
+            <li><i class="bi bi-person-check me-1"></i>dg@demo.com — Directeur général</li>
+            <li class="mt-1"><i class="bi bi-key me-1"></i>Mot de passe : <strong>demo1234</strong></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
