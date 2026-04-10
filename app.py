@@ -730,17 +730,17 @@ def init_db():
         # Seed demo users if none exist
         if not User.query.first():
             users = [
-                ('Admin Client', 'client@demo.com', 'demo1234', 'client', 'prive'),
-                ('Client Public', 'client2@demo.com', 'demo1234', 'client', 'public'),
-                ('Gestionnaire', 'gestionnaire@demo.com', 'demo1234', 'gestionnaire', 'prive'),
-                ('Directeur Général', 'dg@demo.com', 'demo1234', 'dg', 'prive'),
+                ('Client Privé', 'client.prive@pretbank.com', 'Password123!!', 'client', 'prive'),
+                ('Client Public', 'client.public@pretbank.com', 'Password123!!', 'client', 'public'),
+                ('Gestionnaire', 'gestionnaire@pretbank.com', 'Password123!!', 'gestionnaire', 'prive'),
+                ('Directeur Général', 'dg@pretbank.com', 'Password123!!', 'dg', 'prive'),
             ]
             for name, email, pw, role, sector in users:
                 u = User(name=name, email=email, role=role, sector=sector)
                 u.set_password(pw)
                 db.session.add(u)
             db.session.commit()
-            print('✅ Demo users created (password: demo1234)')
+            print('✅ Demo users created (password: Password123!!)')
 
 
 if __name__ == '__main__':
