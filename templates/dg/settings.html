@@ -58,6 +58,9 @@
             <small class="text-muted">
               <i class="bi bi-clock-history"></i>
               Dernière modification : {{ settings.updated_at.strftime('%d/%m/%Y à %H:%M') }} UTC
+              {% if settings.updated_by %}
+                — par <strong>{{ settings.updated_by }}</strong> (ID utilisateur)
+              {% endif %}
             </small>
           </div>
           {% endif %}

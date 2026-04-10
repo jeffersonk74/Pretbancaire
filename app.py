@@ -2,6 +2,7 @@ import os
 import json
 from datetime import datetime, date, timedelta
 from functools import wraps
+from dateutil.relativedelta import relativedelta
 
 from flask import (Flask, render_template, redirect, url_for, request,
                    flash, abort, jsonify, send_from_directory)
@@ -537,10 +538,10 @@ def gestionnaire_disburse(loan_id):
     loan.disbursed_at = datetime.utcnow()
     # Credit client balance
     loan.client.balance += loan.amount
-    # Generate installments
+    # Generate installments (one per calendar month from disbursement date)
     start_date = date.today()
     for i in range(1, loan.duration_months + 1):
-        due = start_date + timedelta(days=30 * i)
+        due = start_date + relativedelta(months=i)
         inst = Installment(
             loan_id=loan.id,
             installment_number=i,
@@ -588,6 +589,7 @@ def dg_approve(loan_id):
         flash('Action non autorisée sur ce dossier.', 'danger')
         return redirect(url_for('dg_loan_detail', loan_id=loan_id))
     loan.status = STATUS_APPROVED
+    # UTC timestamp is used for audit trail consistency across timezones
     loan.dg_signature = f"Approuvé électroniquement par {current_user.name} le {datetime.utcnow().strftime('%d/%m/%Y à %H:%M')} UTC"
     notify(loan.client_id,
            f'Félicitations ! Votre demande #{loan_id} a été approuvée par le DG.', loan_id)
@@ -743,4 +745,5 @@ def init_db():
 
 if __name__ == '__main__':
     init_db()
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    debug_mode = os.environ.get('FLASK_DEBUG', 'false').lower() == 'true'
+    app.run(debug=debug_mode, host='0.0.0.0', port=5000)
