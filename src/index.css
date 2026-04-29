@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-bank-deep-blue text-slate-100 font-sans;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply backdrop-blur-md bg-white/10 border border-white/20 shadow-xl;
+  }
+  .btn-primary {
+    @apply bg-bank-primary text-white font-bold py-2 px-6 rounded-md hover:bg-blue-800 transition-colors duration-300 border border-blue-900;
+  }
+
+  /* User Custom CSS Overrides */
+  .glass.rounded-3xl {
+    border-radius: 6px !important;
+  }
+  
+  .glass.card-blue {
+    border-radius: 6px !important;
+  }
+  
+  .glass.rounded-\[40px\] {
+    border-radius: 8px !important;
+  }
+
+  .w-full.h-4.bg-white\/5.rounded-full {
+    border-radius: 4px !important;
+  }
+}

@@ -1,0 +1,72 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  role      String   // CLIENT_PRIVE, CLIENT_PUBLIC, GESTIONNAIRE, DG
+  name      String?
+  createdAt DateTime @default(now())
+  loans     Loan[]
+}
+
+model Loan {
+  id            Int           @id @default(autoincrement())
+  userId        Int
+  user          User          @relation(fields: [userId], references: [id])
+  productName   String
+  amount        Float
+  duration      Int
+  motif         String?
+  income        Float?
+  charges       Float?
+  status        String        // PENDING_GESTIONNAIRE, PENDING_DG, APPROVED, REJECTED, DISBURSED
+  requestDate   DateTime      @default(now())
+  documentUrl   String?       // ID document
+  contractUrl   String?       // Contract/Arreté document
+  documents     String?       // JSON array of all document URLs
+  rejectionNote String?
+  isDisbursed   Boolean       @default(false)
+  isReadByGestionnaire Boolean @default(false)
+  readAtGestionnaire   DateTime?
+  isReadByDG           Boolean @default(false)
+  readAtDG             DateTime?
+  replacementCount     Int    @default(0)  // Nombre de remplacements après rejet (max 1)
+  installments  Installment[]
+}
+
+model Installment {
+  id               Int      @id @default(autoincrement())
+  loanId           Int
+  loan             Loan     @relation(fields: [loanId], references: [id])
+  month            Int
+  amount           Float
+  dueDate          DateTime
+  paymentDate      DateTime?
+  status           String   // UNPAID, PAID, LATE
+  penalty          Float    @default(0)
+  capital          Float
+  interest         Float
+  insurance        Float
+  remainingBalance Float
+}
+
+model GlobalSettings {
+  id          Int    @id @default(autoincrement())
+  productName String @unique
+  rate        Float
+  maxAmount   Float
+  minAmount   Float
+  maxDuration Int
+  minDuration Int    @default(1)
+}
